@@ -1,0 +1,1 @@
+http://code.google.com/p/xsimilarity/source/browse/trunk/dict/sentiment/?r=34
