@@ -7,7 +7,7 @@ include Makefile.am
 ALL_OBJS+=${OBJS}
 
 %.o:%.cpp
-	${CC} -c $< ${INC}
+	${CC} ${CFLAG} -c $< ${INC}
 
 .PHONY:all clean_objs clean_all
 

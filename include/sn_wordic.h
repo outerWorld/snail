@@ -17,7 +17,7 @@
 #ifndef __SN_WORDICT_H
 #define __SN_WORDICT_H
 
-//namespace word_dic {
+//namespace wordic {
 // word part definition 词性定义
 enum {
 	WD_PART_UNKNOWN = 0x0000,
@@ -58,7 +58,7 @@ typedef struct _wd_attr_s {
 struct _wd_node_s;
 typedef struct _wd_node_s wd_node_t;
 typedef struct _wd_node_s *wd_node_p;
-typedef wd_node_p word_dic_p;
+typedef wd_node_p wordic_p;
 struct _wd_node_s {
 	unsigned short	wd_code;	// unicode value
 	wd_attr_p		p_attr;		// attribute of word
@@ -66,13 +66,19 @@ struct _wd_node_s {
 	wd_node_p		p_next;		// the word next to current, for example, "我们", current node is"我"，its next node is "们"
 };
 
-word_dic_p word_dic_create();
+wordic_p wordic_create();
 
-int word_dic_add_word(word_dic_p p_wdic, unsigned short*word, int word_len, wd_attr_p p_attr);
+// load dict data from file
+int wordic_load(wordic_p p_dic, char *dicfile);
 
-int word_dic_get_word_attr(word_dic_p p_wdic, unsigned short *word, int word_len, wd_attr_p p_attr);
+int wordic_add_word(wordic_p p_wdic, unsigned short*word, int word_len, wd_attr_p p_attr);
 
-int word_dic_destroy(word_dic_p p_wdic);
+int wordic_get_word_attr(wordic_p p_wdic, unsigned short *word, int word_len, wd_attr_p p_attr);
+
+// store dict data to file
+int wordic_store(wordic_p p_dic, char *dicfile);
+
+int wordic_destroy(wordic_p p_wdic);
 
 //}
 
