@@ -1,16 +1,37 @@
 CC=g++
+AR=ar
+LIBS=libsnail.a libsnail.so
+LIB_OBJS=
+include src/Makefile.am
+LIB_OBJS+=$(foreach obj,${OBJS},src/${obj})
 
-.PHONY:clean all
+libsnail.a:${LIB_OBJS}
+	${AR} rcs $@ $^
+	mv $@ lib/
+
+libsnail.so:${LIB_OBJS}
+	${CC} -shared -o $@ $^
+	mv $@ lib/
+
+.PHONY:clean all tests
 
 tests:
-	cd test && make clean && make || cd ..
+	cd test && make clean && make && make clean_objs || cd ..
 
-all:libs tests
+makeobjs:
+	cd src && make clean_objs && make all || cd ..
+
+libs:makeobjs ${LIBS} clean_objs
+
+all:libs tests clean_objs
 
 clean_tests:
 	cd test && make clean || cd ..
 
-clean_libs:
-	@echo "to clean object"
+clean_objs:
+	cd src && make clean_objs || cd ..
 
-clean_all:clean_libs clean_tests
+clean_libs:
+	cd lib && rm -f ${LIBS} || cd ..
+
+clean_all:clean_libs clean_objs clean_tests

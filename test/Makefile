@@ -13,7 +13,10 @@ test_ictclas:test_ictclas.o ${SLIB}
 
 all:${TESTS}
 
-.PHONY:clean all
+.PHONY:clean all clean_objs
+
+clean_objs:
+	rm -f *.o
 
 clean:
 	rm -f ${TESTS}

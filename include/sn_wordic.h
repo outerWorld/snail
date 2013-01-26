@@ -20,6 +20,7 @@
 //namespace word_dic {
 // word part definition 词性定义
 enum {
+	WD_PART_UNKNOWN = 0x0000,
 	WD_PART_NOUN = 0x0001,			// 名词(noun)
 	WD_PART_PRONOUN = 0x0002,		// 代词(pronoun)，如你、我，这个，那个
 	WD_PART_ADJ = 0x0004,			// 形容词(adjective)
@@ -38,9 +39,9 @@ enum {
 
 // word polarity definition 情感倾向定义
 enum {
-	WD_POL_NEG = -1,	// 情感负极性(negativity)，贬义
-	WD_POL_NEU,			// 情感中性(neutrality)，无义
-	WD_POL_POS,			// 情感正极性(positivity)，褒义
+	WD_POL_NEG = 0x01,	// 情感负极性(negativity)，贬义
+	WD_POL_NEU = 0x02,	// 情感中性(neutrality)，无义
+	WD_POL_POS = 0x04,	// 情感正极性(positivity)，褒义
 };
 
 typedef struct _wd_attr_s {
@@ -67,9 +68,9 @@ struct _wd_node_s {
 
 word_dic_p word_dic_create();
 
-int word_dic_add_word(word_dic_p p_wdic, char *word, word_attr_p p_attr);
+int word_dic_add_word(word_dic_p p_wdic, unsigned short*word, int word_len, wd_attr_p p_attr);
 
-int word_dic_get_word_attr(word_dic_p p_wdic, char *word, word_attr_p p_attr);
+int word_dic_get_word_attr(word_dic_p p_wdic, unsigned short *word, int word_len, wd_attr_p p_attr);
 
 int word_dic_destroy(word_dic_p p_wdic);
 
