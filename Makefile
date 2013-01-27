@@ -14,7 +14,7 @@ libsnail.so:${LIB_OBJS}
 	${CC} -shared -o $@ $^
 	mv $@ lib/
 
-.PHONY:clean all tests
+.PHONY:clean all tests tools
 
 tests:
 	cd test && make clean && make all && make clean_objs || cd ..
@@ -24,7 +24,10 @@ makeobjs:
 
 libs:makeobjs ${LIBS} clean_objs
 
-all:libs tests clean_objs
+tools:
+	cd tools && make clean && make all || cd ..
+
+all:libs tests tools clean_objs
 
 clean_tests:
 	cd test && make clean || cd ..
@@ -35,4 +38,7 @@ clean_objs:
 clean_libs:
 	cd lib && rm -f ${LIBS} || cd ..
 
-clean_all:clean_libs clean_objs clean_tests
+clean_tools:
+	cd tools && make clean || cd ..
+
+clean_all:clean_libs clean_objs clean_tests clean_tools

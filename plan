@@ -1,0 +1,6 @@
+2013-01-26~27
+ 1. API: word dict loaded from/stored to file
+ 2. TOOL: read various raw word into memory dict and then stores to dict file
+
+2013-01-28~29
+ 1. API: word segment for sentence, the segment method.

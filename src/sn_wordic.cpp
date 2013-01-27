@@ -3,6 +3,10 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "common.h"
 #include "sn_wordic.h"
 
@@ -22,13 +26,120 @@ wordic_p wordic_create()
 	return p_wdic;
 }
 
-int wordic_load(wordic_p p_dic, char *dicfile)
+typedef struct _code_buf_s {
+	unsigned short size;
+	unsigned short len;
+	unsigned short *buf;
+}code_buf_t, *code_buf_p;
+int wordic_load(wordic_p p_wdic, char *dicfile)
 {
+	int fd;
+	wd_attr_t attr;
+	code_buf_t cb;
+	unsigned short code_len; // unit with sizeof(short)
+	unsigned short attr_len;
+
+	fd = open(dicfile, O_RDONLY);
+	if (fd < 0) return -1;
+
+	cb.size = 1024;
+	cb.len = 0;
+	cb.buf = NULL;
+	MEM_ALLOC(cb.buf, unsigned short*, cb.size*sizeof(short), -1);
+
+	read(fd, (char*)&code_len, sizeof(short));
+	while (code_len != 0) {
+		if (code_len >= cb.size) { /*enlarge the size*/ }
+		read(fd, (char*)cb.buf, code_len*sizeof(short));
+		read(fd, (char*)&attr_len, sizeof(short));
+		read(fd, (char*)&attr, sizeof(wd_attr_t));
+		//
+		wordic_add_word(p_wdic, cb.buf, code_len, &attr);
+		read(fd, (char*)&code_len, sizeof(short));
+	}
+
+	close(fd);
+
+	return 0;
+}
+
+// attention: the question of byte order must be thought!!!
+static int write_to_file(wd_node_p p_node, int fd, code_buf_p p_cb)
+{
+	unsigned short i = 0;
+	const unsigned short attr_size = sizeof(wd_attr_t);
+	wd_node_p p_temp = NULL;
+
+	if (!p_node) return 0;
+
+	i = p_cb->len;
+
+	// check p_cb->size
+	if (i >= p_cb->size) {
+		// enlarge
+	}
+
+	// store itself.
+	if (p_node->p_attr) {
+		i++;
+		p_cb->buf[i] = p_node->wd_code;
+		write(fd, (char*)&i, sizeof(short));
+		write(fd, (char*)p_cb->buf, sizeof(short)*i);
+		write(fd, (char*)&attr_size, sizeof(attr_size)); 
+		write(fd, p_node->p_attr, sizeof(wd_attr_t));
+		i--; // note: the use of this decrease matches the increase 6 lines ahead !!!
+	}
+
+	// store its siblings.
+	p_temp = p_node->p_sib;
+	while (p_temp) {
+		i++;
+		p_cb->buf[i] = p_temp->wd_code;
+		if (p_temp->p_attr) {
+			write(fd, (char*)&i, sizeof(short));
+			write(fd, (char*)p_cb->buf, sizeof(short)*i);
+			write(fd, (char*)&attr_size, sizeof(attr_size)); 
+			write(fd, p_temp->p_attr, sizeof(wd_attr_t));
+		}
+		p_cb->len += 1;
+		write_to_file(p_temp->p_next, fd, p_cb);
+		p_temp = p_temp->p_sib;
+		i--;
+	}
+
+	// store its followings
+	p_cb->buf[i+1] = p_node->wd_code;	
+	p_cb->len += 1;
+	write_to_file(p_node->p_next, fd, p_cb);
+
 	return 0;
 }
 
 int wordic_store(wordic_p p_dic, char *dicfile)
 {
+	int fd;
+	code_buf_t cb;
+	unsigned int i = 0;
+
+	fd = open(dicfile, O_WRONLY);
+	if (fd < 0) return -1;
+
+	cb.size = 1024;
+	cb.len = 0;
+	cb.buf = NULL;
+	MEM_ALLOC(cb.buf, unsigned short *, cb.size*sizeof(short), -1);
+
+	for (i=0; i<L0_SIZE; i++) {
+		cb.buf[0] = i;
+		cb.len = 1;
+		write_to_file(&p_dic[i], fd, &cb);
+	}
+	i = 0;
+	write(fd, (char*)&i, sizeof(short));
+
+	MEM_FREE(cb.buf);
+	close(fd);
+
 	return 0;
 }
 
@@ -139,10 +250,12 @@ static int wordic_free(wd_node_p p_node)
 	while (p_temp) {
 		p_node->p_sib = p_temp->p_sib;
 		wordic_free(p_temp->p_next);
+		if (p_temp->p_attr) free(p_temp->p_attr);
 		free(p_temp);
 		p_temp = p_node->p_sib;
 	}
 
+	if (p_node->p_attr) free(p_node->p_attr);
 	free(p_node);
 
 	return 0;

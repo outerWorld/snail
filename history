@@ -1,0 +1,10 @@
+v1.0 2013-01-22 ~
+1. dependencies
+	--ictclas50
+	--libiconv-1.14
+2. sn_wordic
+	sn_wordic is a dict/lexicon in memory, you can find word with some attributes
+such as word-part, sentiment, sentiment-strength, sentiment-polarity and so on.
+
+3. sn_wordseg
+	sn_wordseg provides word-segmentation by sentence-level	or artical-level.
