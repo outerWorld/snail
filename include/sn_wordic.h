@@ -4,14 +4,9 @@
  * Date  : 2013-01-25
  * Desc  :
  *		word dict file format:
- *		词表头|词属性列表|词内容块
- *      词表头=词表字节大小(4byte)，词个数(1byte)，词编码方式(1byte)
- *		词属性列表={词ID(4byte)，词偏移(4byte)，内容长度(2byte)}，
- *		词内容块={词字节长(1byte)，词内容(nbyte)，词性(1byte)，情感特征及强度（1byte)，词频(1byte)，
- *				  近似词个数（1byte)，近似词ID列表（4*n)，反义词个数（1byte），
- *				  反义词ID列表（4*n）}，
+ *			{词长度（2bytes）、词内容、词属性长度（2bytes）、属性}
  *
- *	内存中以hash存储，
+ *	内存中构建两张trie表，一张正向表，一张逆向表，在分词时可正向和逆向
  */
 
 #ifndef __SN_WORDICT_H
