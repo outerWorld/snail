@@ -19,15 +19,18 @@ static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
 	word_splitter words("");
 	char * line;
 	char * enc_line;
+	char * enc_buf;
 	iconv_t convert;
 	size_t len0, len1;
+	size_t len;
 
 	convert = iconv_open("UTF-8", "UCS-2-INTERNAL");
 	if (-1 == (int)convert) return -1;
 
 	//line = new char(1024);
 	line = (char*)malloc(1024);
-	enc_line = (char*)malloc(2048);
+	enc_buf = (char*)malloc(2048);
+	enc_line = enc_buf;
 
 	inf.open(file, std_inf::in|std_inf::binary);
 
@@ -39,11 +42,13 @@ static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
 		if (len0 <= 0) continue;
 		if ('#' == line[0]) continue;
 		len1 = 2048;
-		if (-1 == iconv(convert, &line, &len0, &enc_line, &len1)) {
+		enc_line = enc_buf;
+		len = iconv(convert, &line, &len0, &enc_line, &len1);
+		if (len == (size_t)-1) {
 			std::cout << "iconv error" << std::endl;
 			break;
 		}
-		words.work_on(std_str(enc_line, len1));
+		words.work_on(std_str(enc_buf, len));
 		words.debug();
 		words.clear();
 	}
@@ -51,7 +56,7 @@ static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
 	iconv_close(convert);
 	inf.close();
 	free(line);
-	free(enc_line);
+	free(enc_buf);
 	//delete line;
 	std::cout << "end" << std::endl;
 
