@@ -16,9 +16,7 @@ class word_splitter {
 public:
 	word_splitter(const std_str & line, const std_str & sep=" ");
 	~word_splitter();
-#if 0
-	int redo(std_str sep);
-#endif
+	int chg_sep(const std_str &sep) { this->sep = sep; }
 	void clear() { words.clear(); }
 	int work_on(const std_str & line);
 	const std_str & operator [](int id);

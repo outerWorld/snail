@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <errno.h>
+
 #include <iostream>
 #include <fstream>
 
@@ -12,48 +14,72 @@
 
 typedef std::ifstream std_inf;
 
+#define OUT_BUF_SZ 2048
+#define IN_BUF_SZ 1024
 static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
 {
 	wd_attr_t attr;
 	std_inf inf;
-	word_splitter words("");
+	word_splitter words("", std_str(" ",2));
 	char * line;
+	char * in_line;
 	char * enc_line;
 	char * enc_buf;
 	iconv_t convert;
+	iconv_t convert2;
 	size_t len0, len1;
 	size_t len;
 
-	convert = iconv_open("UTF-8", "UCS-2-INTERNAL");
+	convert = iconv_open("UCS-2LE", "UTF-8");
 	if (-1 == (int)convert) return -1;
+	
+	convert2 = iconv_open("UTF-8", "UCS-2LE");
+	if (-1 == (size_t)convert2) return -1;
 
 	//line = new char(1024);
-	line = (char*)malloc(1024);
-	enc_buf = (char*)malloc(2048);
+	line = (char*)malloc(IN_BUF_SZ);
+	enc_buf = (char*)malloc(OUT_BUF_SZ);
 	enc_line = enc_buf;
 
 	inf.open(file, std_inf::in|std_inf::binary);
 
 	words.clear();
 	while (inf.good()) {
-		inf.getline(line, 1024);
-		line[strlen(line)-1] = '\0';
+		inf.getline(line, IN_BUF_SZ);
+		if (line[strlen(line)-1] == 0x0a)
+			line[strlen(line)-1] = '\0';
 		len0 = strlen(line);
 		if (len0 <= 0) continue;
 		if ('#' == line[0]) continue;
-		len1 = 2048;
+		len1 = OUT_BUF_SZ;
 		enc_line = enc_buf;
-		len = iconv(convert, &line, &len0, &enc_line, &len1);
+		in_line = line;
+		len = iconv(convert, &in_line, &len0, &enc_line, &len1);
 		if (len == (size_t)-1) {
-			std::cout << "iconv error" << std::endl;
+			std::cout << "iconv error" << errno << ":" << strerror(errno) << std::endl;
 			break;
 		}
-		words.work_on(std_str(enc_buf, len));
+		words.work_on(std_str(enc_buf, OUT_BUF_SZ-len1));
 		words.debug();
 		words.clear();
+		in_line = line;
+		len0 = OUT_BUF_SZ-len1;
+		enc_line = enc_buf;
+		len1 = OUT_BUF_SZ;
+		len = iconv(convert2, &enc_line, &len0, &in_line, &len1);
+		if (len == (size_t)-1) {
+			std::cout << "iconv error" << errno << ":" << strerror(errno) << std::endl;
+			break;
+		}
+		words.chg_sep(" ");
+		words.work_on(std_str(line, OUT_BUF_SZ-len1));
+		words.debug();
+		words.clear();
+		
 	}
 
 	iconv_close(convert);
+	iconv_close(convert2);
 	inf.close();
 	free(line);
 	free(enc_buf);
@@ -74,7 +100,8 @@ int main(int argc, char *argv[])
 	p_bdic = wordic_create();
 	if (!p_bdic) return 1;
 
-	load_file(p_fdic, p_bdic, "data/sorted_out/中文主张词语.txt");
+	//load_file(p_fdic, p_bdic, "data/sorted_out/中文主张词语.txt");
+	load_file(p_fdic, p_bdic, "data/sorted_out/连词.txt");
 
 	wordic_destroy(p_fdic);
 	free(p_fdic);
