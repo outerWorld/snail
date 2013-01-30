@@ -1,1 +1,1 @@
-OBJS=sn_wordic.o
+OBJS=sn_wordic.o word_splitter.o
