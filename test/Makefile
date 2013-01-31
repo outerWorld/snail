@@ -1,6 +1,6 @@
 CC=g++
 SLIB=
-TESTS=test_ictclas test_word_dic
+TESTS=test_ictclas test_word_dic test_lang_conv
 LFLAGS=-DOS_LINUX -g
 CFLGAS=-DOS_LINUX -g -Werror
 INC=-I./ -I../include
@@ -15,6 +15,7 @@ VER=32
 else
 VER=64
 endif
+VER=32
 LIB=-L../lib -lICTCLAS50_${VER}
 SLIB+=../lib/libICTCLAS50_${VER}.a 
 SLIB+=../lib/libsnail.a
@@ -25,6 +26,8 @@ test_ictclas:test_ictclas.o ${SLIB}
 
 test_word_dic:test_word_dic.o ${SLIB}
 	${CC} -o $@ $^ ${LFLAGS}
+test_lang_conv:test_lang_conv.o ${SLIB}
+	${CC} -o $@ $^ ${LFLAGS} -liconv
 
 %.o:%.cpp
 	${CC} -c $< ${CFLAGS} ${INC}

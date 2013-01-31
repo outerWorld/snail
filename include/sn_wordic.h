@@ -39,6 +39,14 @@ enum {
 	WD_POL_POS = 0x04,	// 情感正极性(positivity)，褒义
 };
 
+// senti 情感类型定义
+enum {
+	SENTI_UNKNOWN = 0x00,
+	SENTI_HAPPY,
+	SENTI_ANGRY,
+	SENTI_HATE,
+};
+
 typedef struct _wd_attr_s {
 	unsigned char	senti:4;
 	unsigned char	senti_strength:4;

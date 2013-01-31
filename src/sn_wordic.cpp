@@ -3,9 +3,12 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+
+#include <iostream>
 
 #include "common.h"
 #include "sn_wordic.h"
@@ -81,8 +84,8 @@ static int write_to_file(wd_node_p p_node, int fd, code_buf_p p_cb)
 
 	// store itself.
 	if (p_node->p_attr) {
-		i++;
 		p_cb->buf[i] = p_node->wd_code;
+		i++;
 		write(fd, (char*)&i, sizeof(short));
 		write(fd, (char*)p_cb->buf, sizeof(short)*i);
 		write(fd, (char*)&attr_size, sizeof(attr_size)); 
@@ -93,8 +96,8 @@ static int write_to_file(wd_node_p p_node, int fd, code_buf_p p_cb)
 	// store its siblings.
 	p_temp = p_node->p_sib;
 	while (p_temp) {
-		i++;
 		p_cb->buf[i] = p_temp->wd_code;
+		i++;
 		if (p_temp->p_attr) {
 			write(fd, (char*)&i, sizeof(short));
 			write(fd, (char*)p_cb->buf, sizeof(short)*i);
@@ -103,12 +106,13 @@ static int write_to_file(wd_node_p p_node, int fd, code_buf_p p_cb)
 		}
 		p_cb->len += 1;
 		write_to_file(p_temp->p_next, fd, p_cb);
+		p_cb->len -= 1;
 		p_temp = p_temp->p_sib;
 		i--;
 	}
 
 	// store its followings
-	p_cb->buf[i+1] = p_node->wd_code;	
+	p_cb->buf[i] = p_node->wd_code;
 	p_cb->len += 1;
 	write_to_file(p_node->p_next, fd, p_cb);
 
@@ -121,8 +125,11 @@ int wordic_store(wordic_p p_dic, char *dicfile)
 	code_buf_t cb;
 	unsigned int i = 0;
 
-	fd = open(dicfile, O_WRONLY);
-	if (fd < 0) return -1;
+	fd = open(dicfile, O_CREAT|O_WRONLY, S_IRWXU);
+	if (fd < 0) {
+		std::cout << "open " << dicfile << " failed [" << errno << "," << strerror(errno) << std::endl;
+		return -1;
+	}
 
 	cb.size = 1024;
 	cb.len = 0;
@@ -131,7 +138,7 @@ int wordic_store(wordic_p p_dic, char *dicfile)
 
 	for (i=0; i<L0_SIZE; i++) {
 		cb.buf[0] = i;
-		cb.len = 1;
+		cb.len = 0;
 		write_to_file(&p_dic[i], fd, &cb);
 	}
 	i = 0;

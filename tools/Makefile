@@ -1,4 +1,5 @@
 CC=g++
+#CFLAGS=-g -D_CONV_TEST_
 CFLAGS=-g
 LDFLAGS=
 INC=-I../include

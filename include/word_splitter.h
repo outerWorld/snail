@@ -21,12 +21,13 @@ public:
 	int work_on(const std_str & line);
 	const std_str & operator [](int id);
 	void debug();
+public:
+	const static std_str err;
 
 private:
 	int	split(const std_str & data, const std_str & sep, word_vec & wds);
 
 private:
-	const static std_str err;
 	std_str		raw;
 	std_str 	sep;
 	word_vec 	words;

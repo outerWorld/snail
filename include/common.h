@@ -10,4 +10,8 @@
 
 #define MEM_FREE(pbuf) free(pbuf); pbuf = NULL;
 
+#include <string>
+typedef std::string std_str;
+typedef std::ifstream std_inf;
+
 #endif // __COMMON_H

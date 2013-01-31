@@ -7,43 +7,35 @@
 
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 #include <iconv.h>
+
+#include "common.h"
+
+#include "lang_conv.h"
 #include "sn_wordic.h"
 #include "word_splitter.h"
 
-typedef std::ifstream std_inf;
-
-#define OUT_BUF_SZ 2048
 #define IN_BUF_SZ 1024
-static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
+static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file, wd_attr_p p_attr)
 {
-	wd_attr_t attr;
+	
 	std_inf inf;
-	word_splitter words("", std_str(" ",2));
 	char * line;
-	char * in_line;
-	char * enc_line;
-	char * enc_buf;
-	iconv_t convert;
-	iconv_t convert2;
+	std_str revert_word;
+	lang_conv lc("UTF-8", "UCS-2LE");
+#if defined(_CONV_TEST_)
+	lang_conv lc2("UCS-2LE", "UTF-8");
+#endif // _CONV_TEST_
 	size_t len0, len1;
 	size_t len;
+	word_splitter words("", std_str(" ",2));
 
-	convert = iconv_open("UCS-2LE", "UTF-8");
-	if (-1 == (int)convert) return -1;
-	
-	convert2 = iconv_open("UTF-8", "UCS-2LE");
-	if (-1 == (size_t)convert2) return -1;
-
-	//line = new char(1024);
 	line = (char*)malloc(IN_BUF_SZ);
-	enc_buf = (char*)malloc(OUT_BUF_SZ);
-	enc_line = enc_buf;
 
 	inf.open(file, std_inf::in|std_inf::binary);
 
-	words.clear();
 	while (inf.good()) {
 		inf.getline(line, IN_BUF_SZ);
 		if (line[strlen(line)-1] == 0x0a)
@@ -51,39 +43,43 @@ static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file)
 		len0 = strlen(line);
 		if (len0 <= 0) continue;
 		if ('#' == line[0]) continue;
-		len1 = OUT_BUF_SZ;
-		enc_line = enc_buf;
-		in_line = line;
-		len = iconv(convert, &in_line, &len0, &enc_line, &len1);
-		if (len == (size_t)-1) {
-			std::cout << "iconv error" << errno << ":" << strerror(errno) << std::endl;
-			break;
+		len = lc.conv(line, len0);
+
+		words.work_on(std_str(lc.data(), lc.len()));
+		int i = 0;
+		// each element is 2bytes, so when revert the code, it should go with 2 bytes everytime.
+		while (word_splitter::err != words[i]) {
+			revert_word.clear();
+			//revert_word.resize(words[i].length());
+			int k = words[i].length() - sizeof(short);
+			int j = 0;
+			while (k >= 0) {
+				revert_word.insert(j, words[i], k, sizeof(short));
+				k -= sizeof(short);
+				j += sizeof(short);
+			}
+			wordic_add_word(p_fdic, (unsigned short*)words[i].data(), words[i].length()/2, p_attr);
+			wordic_add_word(p_bdic, (unsigned short*)revert_word.data(), revert_word.length()/2, p_attr);
+			i++;
 		}
-		words.work_on(std_str(enc_buf, OUT_BUF_SZ-len1));
 		words.debug();
 		words.clear();
-		in_line = line;
-		len0 = OUT_BUF_SZ-len1;
-		enc_line = enc_buf;
-		len1 = OUT_BUF_SZ;
-		len = iconv(convert2, &enc_line, &len0, &in_line, &len1);
-		if (len == (size_t)-1) {
-			std::cout << "iconv error" << errno << ":" << strerror(errno) << std::endl;
-			break;
+
+#if defined(_CONV_TEST_)
+		len = lc2.conv(lc.data(), lc.len());
+		if (len != lc.len()+1) {
+			std::cout << "error or incomplete input" << std::endl;
 		}
 		words.chg_sep(" ");
-		words.work_on(std_str(line, OUT_BUF_SZ-len1));
+		words.work_on(std_str(lc2.data(), lc2.len()));
 		words.debug();
 		words.clear();
-		
+#endif // _CONV_TEST_
 	}
 
-	iconv_close(convert);
-	iconv_close(convert2);
 	inf.close();
 	free(line);
-	free(enc_buf);
-	//delete line;
+
 	std::cout << "end" << std::endl;
 
 	return 0;
@@ -93,6 +89,7 @@ int main(int argc, char *argv[])
 {
 	wordic_p p_fdic;
 	wordic_p p_bdic;
+	wd_attr_t attr;
 
 	p_fdic = wordic_create();
 	if (!p_fdic) return 1;
@@ -101,7 +98,36 @@ int main(int argc, char *argv[])
 	if (!p_bdic) return 1;
 
 	//load_file(p_fdic, p_bdic, "data/sorted_out/中文主张词语.txt");
-	load_file(p_fdic, p_bdic, "data/sorted_out/连词.txt");
+	memset(&attr, 0x00, sizeof(attr));
+
+	attr.word_pol = WD_POL_NEU;
+	attr.word_part = WD_PART_CONJ;
+	load_file(p_fdic, p_bdic, "data/sorted_out/连词.txt", &attr);
+
+#if 0
+	attr.word_pol = WD_POL_NEU;
+	attr.word_part = WD_PART_NUME;
+	load_file(p_fdic, p_bdic, "data/sorted_out/数词.txt", &attr);
+
+	attr.word_pol = WD_POL_NEU;
+	attr.word_part = WD_PART_ONOM;
+	load_file(p_fdic, p_bdic, "data/sorted_out/拟声词.txt", &attr);
+
+	attr.senti = SENTI_UNKNOWN;
+	attr.senti_strength = 0;
+	attr.word_pol = WD_POL_NEG;
+	attr.word_part = WD_PART_ONOM;
+	load_file(p_fdic, p_bdic, "data/sorted_out/中文负面情感词语.txt", &attr);
+
+	attr.senti = SENTI_UNKNOWN;
+	attr.senti_strength = 0;
+	attr.word_pol = WD_POL_NEG;
+	attr.word_part = WD_PART_ONOM;
+	load_file(p_fdic, p_bdic, "data/sorted_out/中文负面情感词语.txt", &attr);
+#endif
+
+	wordic_store(p_fdic, "sn_forward.dict");
+	wordic_store(p_bdic, "sn_backward.dict");
 
 	wordic_destroy(p_fdic);
 	free(p_fdic);
