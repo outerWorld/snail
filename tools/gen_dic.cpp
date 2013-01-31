@@ -1,4 +1,4 @@
-
+// -*- encoding=utf-8 -*-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -20,7 +20,6 @@
 #define IN_BUF_SZ 1024
 static int load_file(wordic_p p_fdic, wordic_p p_bdic, char *file, wd_attr_p p_attr)
 {
-	
 	std_inf inf;
 	char * line;
 	std_str revert_word;
@@ -97,7 +96,6 @@ int main(int argc, char *argv[])
 	p_bdic = wordic_create();
 	if (!p_bdic) return 1;
 
-	//load_file(p_fdic, p_bdic, "data/sorted_out/中文主张词语.txt");
 	memset(&attr, 0x00, sizeof(attr));
 
 	attr.word_pol = WD_POL_NEU;
@@ -105,6 +103,7 @@ int main(int argc, char *argv[])
 	load_file(p_fdic, p_bdic, "data/sorted_out/连词.txt", &attr);
 
 #if 0
+	//load_file(p_fdic, p_bdic, "data/sorted_out/中文主张词语.txt");
 	attr.word_pol = WD_POL_NEU;
 	attr.word_part = WD_PART_NUME;
 	load_file(p_fdic, p_bdic, "data/sorted_out/数词.txt", &attr);

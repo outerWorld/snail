@@ -73,6 +73,7 @@ wordic_p wordic_create();
 
 // load dict data from file
 int wordic_load(wordic_p p_dic, char *dicfile);
+int wordic_backward_load(wordic_p p_dic, char *dicfile);
 
 int wordic_add_word(wordic_p p_wdic, unsigned short*word, int word_len, wd_attr_p p_attr);
 

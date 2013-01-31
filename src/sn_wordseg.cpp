@@ -3,13 +3,9 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <deque>
+#include <vector>
 
+#include "common.h"
+#include "lang_conv.h"
 #include "sn_wordic.h"
 #include "sn_wordseg.h"
-
-
-int wd_seg_sentence(unsigned short *sentence, int sentence_len, std::deque<word_info_t> & words)
-{
-	return 0;
-}

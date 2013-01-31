@@ -8,19 +8,30 @@
 #ifndef __SN_WORDSEG_H
 #define __SN_WORDSEG_H
 
-class std::deque;
-struct wd_attr_t;
-
 // max word num 最大中文字个数
 #define WORD_SIZE	16
 typedef struct _word_info_s {
-	unsigned short 	code[WORD_SIZE];	
+	unsigned short 	code[WORD_SIZE];
 	wd_attr_t 		attr;	
 }word_info_t, *word_info_p;
 
-/*
- * attention: sentence must have been unicode data
- */
-int wd_seg_sentence(unsigned short *sentence, int sentence_len, std::deque<word_info_t> & words);
+typedef std::vector<word_info_t> word_info_list;
+
+class word_segmentor {
+public:
+	word_segmentor(const char *dict_file);
+	~word_segmentor();
+	bool ok() { return status==0?true:false; }
+	int sentence_ws(const unsigned short *ucs_2le, int len);
+	int file_ws(const char *fname, std_str enc_type);
+	const word_info_p operator [](int id);
+
+	void debug();
+private:
+	wordic_p 		p_bdic; // backward dict
+	wordic_p 		p_fdic; // forward dict
+	word_info_list 	words;
+	int				status;
+};
 
 #endif // __SN_WORDSEG_H

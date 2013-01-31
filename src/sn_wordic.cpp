@@ -29,16 +29,31 @@ wordic_p wordic_create()
 	return p_wdic;
 }
 
+static int short_swap(unsigned short *data, int data_len)
+{
+	int i = 0;
+	int mid = 0;
+	unsigned short temp;
+	mid = data_len / 2;
+	for (i=0; i<mid; i++) {
+		temp = data[i];
+		data[i] = data[data_len-1-i];
+		data[data_len-1-i] = temp;
+	}
+
+	return 0;
+}
+
 typedef struct _code_buf_s {
 	unsigned short size;
 	unsigned short len;
 	unsigned short *buf;
 }code_buf_t, *code_buf_p;
-int wordic_load(wordic_p p_wdic, char *dicfile)
+int wordic_load(wordic_p p_fdic, char *dicfile, wordic_p p_bdic = NULL)
 {
 	int fd;
-	wd_attr_t attr;
 	code_buf_t cb;
+	wd_attr_t attr;
 	unsigned short code_len; // unit with sizeof(short)
 	unsigned short attr_len;
 
@@ -57,7 +72,12 @@ int wordic_load(wordic_p p_wdic, char *dicfile)
 		read(fd, (char*)&attr_len, sizeof(short));
 		read(fd, (char*)&attr, sizeof(wd_attr_t));
 		//
-		wordic_add_word(p_wdic, cb.buf, code_len, &attr);
+		wordic_add_word(p_fdic, cb.buf, code_len, &attr);
+		//
+		if (p_bdic) {
+			short_swap(cb.buf, code_len);
+			wordic_add_word(p_bdic, cb.buf, code_len, &attr);
+		}
 		read(fd, (char*)&code_len, sizeof(short));
 	}
 
@@ -142,7 +162,7 @@ int wordic_store(wordic_p p_dic, char *dicfile)
 		write_to_file(&p_dic[i], fd, &cb);
 	}
 	i = 0;
-	write(fd, (char*)&i, sizeof(short));
+	write(fd, (char*)&i, sizeof(short)); // end flag for dict.
 
 	MEM_FREE(cb.buf);
 	close(fd);
