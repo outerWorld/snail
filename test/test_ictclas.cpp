@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	int count = 0;
 	LPICTCLAS_RESULT result;
 	char *data_path = NULL;
-	char * test_data = "我认为这件事情的发生，对我们所有人来说，都是个灾难！,毛主席也这么认为";
+	char * test_data = "我认为这件事情的发生，oh my god,对我们所有人来说，都是个灾难！,毛主席也这么认为啊！去那里逛逛？";
 
 	if (argc < 2) return 1;
 
