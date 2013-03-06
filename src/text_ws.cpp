@@ -29,12 +29,18 @@ int text_ws::parse_file(char *file, unsigned int code_type)
 	int fd = 0;
 	int len = 0;
 	char *buf = NULL;
-	struct stat fst;
+	struct stat st;
 
 	fd = open(file, O_RDONLY);
 	if (fd < 0) return -1;
 
 	memset(&fs, 0x00, sizeof(struct stat));
+	if (0 != stat(file, &st)) {
+		return -1;
+	}
+
+	buf = (char*)malloc(st.st_size);
+	if (!buf) return -1;
 
 
 	return 0;
