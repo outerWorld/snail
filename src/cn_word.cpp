@@ -8,7 +8,7 @@ cn_word::cn_word(char *wd, int len)
 	this->wd = std_str(wd, len);
 }
 
-~cn_word::cn_word()
+cn_word::~cn_word()
 {
 }
 

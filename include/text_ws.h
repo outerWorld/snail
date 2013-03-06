@@ -8,6 +8,7 @@
 #define __TEXT_WS_H
 
 #include "common.h"
+#include "cn_word.h"
 typedef std::vector<cn_word> sentence;
 typedef std::vector<sentence> paragraph;
 

@@ -6,7 +6,7 @@ LIB_OBJS=
 include src/Makefile.am
 LIB_OBJS+=$(foreach obj,${OBJS},src/${obj})
 
-libsnail.a:${LIB_OBJS}
+libsnail.a:${LIB_OBJS} lib/libICTCLAS50_32.a
 	${AR} rcs $@ $^
 	mv $@ lib/
 
