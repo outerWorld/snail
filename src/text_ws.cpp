@@ -89,25 +89,29 @@ int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 	sent.clear();
 	this->paragraphs.clear();
 	res = ICTCLAS_ParagraphProcessA(data, data_len, res_count, (eCodeType)code_type, true);
-	__show(data, res, res_count);
+	//__show(data, res, res_count);
 
-#if 0
+#if 1
 	for (i=0; i<res_count; i++) {
 		p = res[i].iStartPos+data;
-		get_polar_by_string(res[i].iPOS, wd_pol);
-		// puntuation mark
-		if (is_punctuation(p, res[i].iLength)) {
-			if (is_sentence_flag(p,
-			// if word is '。' or '!' , then a sentence ends.
+		get_polar_by_string(res[i].szPOS, wd_pol);
+		if (IS_SENT_MARK(wd_pol)) {
 			if (sent.size() > 0) para.push_back(sent);
 			sent.clear();
 		} else if (memcmp(p, "\n", 1)==0 || (memcmp(p, "\r\n", 2)==0)) {
 			// if word is '\n' or '\r\n', then a paragraph ends.
+			if (sent.size() > 0) {
+				para.push_back(sent);
+				sent.clear();
+			}
 			if (para.size() > 0) this->paragraphs.push_back(para);				
 			para.clear();
 		} else {
-			if (res[i].iLength > 0 && !is_punctuation(p, res[i].iLength)) {
+			if (res[i].iLength > 0 && !IS_PUNCTION(wd_pol)) {
 				cn_word wd(p, res[i].iLength);
+				wd.set_pol(wd_pol);
+				wd.set_weight(res[i].iWeight);
+				wd.set_word_type(res[i].iWordType);
 				sent.push_back(wd);
 			}
 		}
@@ -138,6 +142,7 @@ int text_ws::show_paragraph()
 			fprintf(stdout, "\tSentence:\n\t");
 			for (wd_ib = sent_ib->begin(); wd_ib!=sent_ib->end(); wd_ib++) {
 				wd_ib->show();
+				fprintf(stdout, "\n\t");
 			}
 		}
 	}

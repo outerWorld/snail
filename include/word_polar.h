@@ -7,6 +7,12 @@
 #ifndef __WORD_POLAR_H
 #define __WORD_POLAR_H
 
+// 标点符号定义
+#define PERIOD_MARK 0x50
+#define QUESTION_MARK 0x60
+#define EXCLAM_MARK 0x70
+#define COMMA_MARK 0x80
+
 // 词性从ictclas处获取,高3个字节的每一位表示一级词性，可有24个一级词性，二级词性用低字节的高4位表示（16个二级词性），三级词性用低字节的低4位表示（16个三级词性）
 enum {
 	WP_UNK 			= 		0x00000000, // 未知
@@ -106,10 +112,10 @@ enum {
 	WP_PUNCTION_RP 	= 		0x04000020, // 二级标点符号 右括号(right parenthesesbrackets)
 	WP_PUNCTION_LQM = 		0x04000030, // 二级标点符号 左引号(left quotation mark)
 	WP_PUNCTION_RQM = 		0x04000040, // 二级标点符号 右引号(right quotation mark)
-	WP_PUNCTION_PER = 		0x04000050, // 二级标点符号 句号(period)
-	WP_PUNCTION_QUM = 		0x04000060, // 二级标点符号 问号(question mark)
-	WP_PUNCTION_EXM = 		0x04000070, // 二级标点符号 叹号(exclamation mark)
-	WP_PUNCTION_COMMA = 	0x04000080, // 二级标点符号 逗号(comma)
+	WP_PUNCTION_PER = 		WP_PUNCTION|PERIOD_MARK, // 二级标点符号 句号(period)
+	WP_PUNCTION_QUM = 		WP_PUNCTION|QUESTION_MARK, // 二级标点符号 问号(question mark)
+	WP_PUNCTION_EXM = 		WP_PUNCTION|EXCLAM_MARK, // 二级标点符号 叹号(exclamation mark)
+	WP_PUNCTION_COMMA = 	WP_PUNCTION|COMMA_MARK, // 二级标点符号 逗号(comma)
 	WP_PUNCTION_SEMI = 		0x04000090, // 二级标点符号 分号(semicolon)
 	WP_PUNCTION_BSL = 		0x040000A0, // 二级标点符号 顿号(Chinese back-sloping comma)
 	WP_PUNCTION_COLON = 	0x040000B0, // 二级标点符号 冒号(colon)
@@ -125,6 +131,11 @@ enum {
 	WP_PREV 		= 		0x10000000, // 前缀
 	WP_POST 		= 		0x20000000, // 后缀
 };
+
+
+#define IS_PUNCTION(polar) (polar&WP_PUNCTION != 0x00)
+#define IS_SENT_MARK(polar) (polar&WP_PUNCTION && \
+((polar&0xFF==PERIOD_MARK)||(polar&0xFF==QUESTION_MARK)|| (polar&0xFF==EXCLAM_MARK)))
 
 // for comforming to ictclas
 int get_polar_by_string(char *str_pos, unsigned int & wd_pos);

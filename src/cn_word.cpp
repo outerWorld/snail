@@ -14,7 +14,7 @@ cn_word::~cn_word()
 
 int cn_word::show()
 {
-	printf("[%.*s] pol=%d weight=%d type=%d\n",
+	printf("[%.*s] pol=%08x weight=%d type=%d\n",
 			wd.length(), wd.c_str(), pol, weight, word_type);
 
 	return 0;
