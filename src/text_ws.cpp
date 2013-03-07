@@ -9,6 +9,7 @@
 #include <fcntl.h>
 
 #include "ictclas50.h"
+#include "word_polar.h"
 #include "text_ws.h"
 
 
@@ -54,15 +55,31 @@ int text_ws::parse_file(char *file, unsigned int code_type)
 	parse_string(buf, st.st_size, code_type);
 
 	close(fd);
+	free(buf);
 
 	return 0;
 }
 
+static int __show(char *buf, LPICTCLAS_RESULT p_res, int count)
+{
+	int i = 0;
+	unsigned int wd_pol = 0;
+	
+	while (i < count) {
+		get_polar_by_string(p_res[i].szPOS, wd_pol);
+		fprintf(stdout, "[%.*s] POS=%s iPos=%d|%08x WordID=%d WordType=%d Weight=%d\n",
+				p_res[i].iLength, buf+p_res[i].iStartPos, p_res[i].szPOS, p_res[i].iPOS, wd_pol, p_res[i].iWordID, p_res[i].iWordType, p_res[i].iWeight);
+		i++;
+	}
+
+	return 0;
+}
 
 int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 {
 	int i = 0;
 	int res_count = 0;
+	unsigned int wd_pol = 0;
 	LPICTCLAS_RESULT res;
 	sentence sent;
 	paragraph para;
@@ -72,19 +89,24 @@ int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 	sent.clear();
 	this->paragraphs.clear();
 	res = ICTCLAS_ParagraphProcessA(data, data_len, res_count, (eCodeType)code_type, true);
+	__show(data, res, res_count);
 
+#if 0
 	for (i=0; i<res_count; i++) {
 		p = res[i].iStartPos+data;
-		if (memcmp(p, "。", sizeof("。"))==0 || memcmp(p, "!", sizeof("!"))==0 || memcmp(p, "！", sizeof("！"))==0 || memcmp(p, ".", sizeof("."))==0) {
+		get_polar_by_string(res[i].iPOS, wd_pol);
+		// puntuation mark
+		if (is_punctuation(p, res[i].iLength)) {
+			if (is_sentence_flag(p,
 			// if word is '。' or '!' , then a sentence ends.
-			para.push_back(sent);
+			if (sent.size() > 0) para.push_back(sent);
 			sent.clear();
 		} else if (memcmp(p, "\n", 1)==0 || (memcmp(p, "\r\n", 2)==0)) {
 			// if word is '\n' or '\r\n', then a paragraph ends.
-			this->paragraphs.push_back(para);				
+			if (para.size() > 0) this->paragraphs.push_back(para);				
 			para.clear();
 		} else {
-			if (res[i].iLength > 0 && *p != ' ') {
+			if (res[i].iLength > 0 && !is_punctuation(p, res[i].iLength)) {
 				cn_word wd(p, res[i].iLength);
 				sent.push_back(wd);
 			}
@@ -98,6 +120,7 @@ int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 	if (para.size() > 0) {
 		this->paragraphs.push_back(para);
 	}
+#endif
 
 	ICTCLAS_ResultFree(res);
 }
