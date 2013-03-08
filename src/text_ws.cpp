@@ -89,9 +89,9 @@ int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 	sent.clear();
 	this->paragraphs.clear();
 	res = ICTCLAS_ParagraphProcessA(data, data_len, res_count, (eCodeType)code_type, true);
-	//__show(data, res, res_count);
+	__show(data, res, res_count);
 
-#if 1
+#if 0
 	for (i=0; i<res_count; i++) {
 		p = res[i].iStartPos+data;
 		get_polar_by_string(res[i].szPOS, wd_pol);
