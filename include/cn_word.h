@@ -18,6 +18,7 @@ public:
 	int set_word_type(int wt) { this->word_type = wt; }
 
 	int show();
+	int show_wd();
 private:
 	std_str wd;
 	int pol;	// 词性

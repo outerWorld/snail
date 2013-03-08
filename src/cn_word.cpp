@@ -19,3 +19,8 @@ int cn_word::show()
 
 	return 0;
 }
+
+int cn_word::show_wd()
+{
+	printf("%.*s", wd.length(), wd.c_str());
+}

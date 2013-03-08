@@ -89,9 +89,9 @@ int text_ws::parse_string(char *data, int data_len, unsigned int code_type)
 	sent.clear();
 	this->paragraphs.clear();
 	res = ICTCLAS_ParagraphProcessA(data, data_len, res_count, (eCodeType)code_type, true);
-	__show(data, res, res_count);
+	//__show(data, res, res_count);
 
-#if 0
+#if 1
 	for (i=0; i<res_count; i++) {
 		p = res[i].iStartPos+data;
 		get_polar_by_string(res[i].szPOS, wd_pol);
@@ -141,10 +141,11 @@ int text_ws::show_paragraph()
 		for (sent_ib = para_ib->begin(); sent_ib!=para_ib->end(); sent_ib++) {
 			fprintf(stdout, "\tSentence:\n\t");
 			for (wd_ib = sent_ib->begin(); wd_ib!=sent_ib->end(); wd_ib++) {
-				wd_ib->show();
-				fprintf(stdout, "\n\t");
+				wd_ib->show_wd();
+				fprintf(stdout, "/ ");
 			}
 		}
+		fprintf(stdout, "\n");
 	}
 
 	return 0;
