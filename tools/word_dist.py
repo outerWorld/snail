@@ -13,28 +13,38 @@ class word_dist():
 		for line in open(article, 'rb'):
 			chars = line.strip('\n').decode('utf-8')
 			pure_chars = [w for w in chars if w not in punct_list]
+			#print "".join(pure_chars)
 			temp = ''
 			count = 0
 			for c in pure_chars:
-				if c not in self.words:
-					self.words[c] = 0
-				self.words[c] += 1
+				#print "count=%d %s" %(count, c)
+				temp = temp + c
+				count += 1
 				if count < self.max_wordlen:
-					temp = temp + c
-					count += 1
 					continue
+				#print temp
 				temp_len = len(temp)
-				for i in range(0, temp_len-1):
-					for j in range(i+1, temp_len):
-						w = temp[i:j+1]
-						if w not in self.words:
-							self.words[w] = 0
-						self.words[w] += 1
-				if temp not in self.words:
-					self.words[c] = 0
+				for j in range(0, temp_len):
+					w = temp[0:j+1]
+					if w not in self.words:
+						self.words[w] = 0
+					self.words[w] += 1
+					print w
 
 				temp = temp[1:]
+				#print "cut: %s" %(temp)
 				count -= 1
+
+			print "==========="
+			
+			temp_len = len(temp)
+			for i in range(0, temp_len-1):
+				for j in range(i, temp_len):
+					w = temp[i:j+1]
+					#print w
+					if w not in self.words:
+						self.words[w] = 0
+					self.words[w] += 1
 
 	def sort_by_freq(self):
 		w_freq = { }
@@ -59,8 +69,8 @@ class word_dist():
 
 # python word_dist topN file1 file2 ...
 if __name__ == "__main__":
-	if len(sys.argv) > 3:
-		w_dist = word_dist(10)
+	if len(sys.argv) >= 3:
+		w_dist = word_dist(5)
 		for i in range(2, len(sys.argv)):
 			w_dist.add_file(sys.argv[i])
 		word_freq = w_dist.get(int(sys.argv[1]))
